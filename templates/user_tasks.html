@@ -1,0 +1,110 @@
+{% extends "base.html" %} {% block content %}
+<div class="flex justify-center">
+  <div class="flex flex-col justify-center">
+    <div class="flex justify-between">
+      <h1 class="text-4xl font-bold my-10">Hi {{username}}</h1>
+      <button class="text-red-500 ml-5 font-semibold">
+        <a href="/user/logout/">Log Out</a>
+      </button>
+    </div>
+    <div class="flex">{{completed_cnt}} of {{total_cnt}} tasks completed</div>
+    <div class="flex justify-around my-3">
+      <button
+        class="hover:bg-red-200 hover:text-red-700 hover:font-semibold rounded-full px-5 py-2"
+      >
+        <a href="/tasks/">All</a>
+      </button>
+      <button
+        class="hover:bg-red-200 hover:text-red-700 hover:font-semibold rounded-full rounded-full px-3 py-2"
+      >
+        <a href="/pending-tasks/">Pending</a>
+      </button>
+      <button
+        class="hover:bg-red-200 hover:text-red-700 hover:font-semibold rounded-full rounded-full px-3 py-2"
+      >
+        <a href="/completed-tasks/">Completed</a>
+      </button>
+    </div>
+    <div>
+      <ul class="w-full rounded-lg mt-2 mb-3">
+        {% for task in tasks %}
+        <li class="mb-4">
+          <div
+            class="w-fill flex justify-between p-3 pl-3 bg-gray-100 hover:bg-gray-200 rounded-lg"
+          >
+            <div class="flex flex-col mr-12">
+              <div class="flex text-lg font-semibold">{{task.title}}</div>
+              <div class="flex text-gray-500 text-sm">
+                {{task.created_date|date:"D j M"}}
+              </div>
+            </div>
+            <div class="flex justify-center">
+              <button
+                class="bg-teal-400 hover:bg-teal-300 text-black font-bold py-2 px-2 ml-2 my-2 rounded inline-flex items-center float-right"
+              >
+                <a href="/update-task/{{task.id}}/">
+                  <img
+                    class="fill-current w-4 h-4"
+                    src="https://cdn-user-icons.flaticon.com/64103/64103881/1644389866335.svg?token=exp=1644390767~hmac=3e2459beb46b683eb97f86802950224d"
+                /></a>
+              </button>
+              <button
+                class="bg-red-500 hover:bg-red-400 text-black font-bold py-2 px-2 ml-2 my-2 rounded inline-flex items-center float-right"
+              >
+                <a href="/delete-task/{{task.id}}/">
+                  <img
+                    class="fill-current w-4 h-4"
+                    src="https://cdn-user-icons.flaticon.com/64103/64103881/1644389790621.svg?token=exp=1644390698~hmac=b3eab795860bd32d2563c4bdc2d17af1"
+                /></a>
+              </button>
+            </div>
+          </div>
+        </li>
+        {% endfor %} {% for task in completed %}
+        <li class="mb-1">
+          <div
+            class="w-fill flex justify-between p-3 pl-3 bg-gray-100 hover:bg-gray-200 rounded-lg"
+          >
+            <div class="flex flex-col mr-12">
+              <div class="flex text-red-500 line-through text-lg font-semibold">
+                {{task.title}}
+              </div>
+              <div class="flex text-gray-500 text-sm">
+                {{task.created_date|date:"D j M"}}
+              </div>
+            </div>
+            <div class="flex justify-center">
+              <button
+                class="bg-teal-400 hover:bg-teal-300 text-black font-bold py-2 px-2 ml-2 my-2 rounded inline-flex items-center float-right"
+              >
+                <a href="/update-task/{{task.id}}/">
+                  <img
+                    class="fill-current w-4 h-4"
+                    src="https://cdn-user-icons.flaticon.com/64103/64103881/1644389866335.svg?token=exp=1644390767~hmac=3e2459beb46b683eb97f86802950224d"
+                /></a>
+              </button>
+              <button
+                class="bg-red-500 hover:bg-red-400 text-black font-bold py-2 px-2 ml-2 my-2 rounded inline-flex items-center float-right"
+              >
+                <a href="/delete-task/{{task.id}}/">
+                  <img
+                    class="fill-current w-4 h-4"
+                    src="https://cdn-user-icons.flaticon.com/64103/64103881/1644389790621.svg?token=exp=1644390698~hmac=b3eab795860bd32d2563c4bdc2d17af1"
+                /></a>
+              </button>
+            </div>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <button
+      class="order-last bg-red-500 hover:bg-red-600 text-white mt-10 py-2 px-10 w-full border border-blue-700 rounded shadow"
+      type="submit"
+    >
+      <a href="/create-task/">Add</a>
+    </button>
+  </div>
+</div>
+
+{% endblock %}
