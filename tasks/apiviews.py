@@ -58,7 +58,6 @@ class TaskHistorySerializer(ModelSerializer):
 class HistoryFilter(FilterSet):
     oldstatus = ChoiceFilter(choices=STATUS_CHOICES)
     newstatus = ChoiceFilter(choices=STATUS_CHOICES)
-    # * https://django-filter.readthedocs.io/en/stable/ref/filters.html#method
     change_date = DateFilter(method="datefilter")
 
     def datefilter(self, queryset, name, value):
@@ -80,9 +79,4 @@ class TaskHistoryViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, Gener
             task_id=self.kwargs["task_pk"],
             user=self.request.user,
         )
-#====================================================================
-# class TaskListAPI(APIView):
-#     def get(self, request):
-#         tasks= Task.objects.filter(deleted=False)
-#         data=TaskSerializer(tasks, many=True).data
-#         return Response({"tasks":data})
+
