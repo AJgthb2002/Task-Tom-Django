@@ -52,9 +52,10 @@ class TaskHistorySerializer(ModelSerializer):
 
     class Meta:
         model = TaskHistory
-        fields = ["oldstatus", "newstatus", "change_date" ]
+        fields = ["old_status", "new_status", "change_date" ]
 
 class HistoryFilter(FilterSet):
+
     old_status = ChoiceFilter(choices=STATUS_CHOICES)
     new_status = ChoiceFilter(choices=STATUS_CHOICES)
     change_date = DateFilter(method="datefilter")
