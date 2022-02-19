@@ -54,14 +54,12 @@ class TaskHistorySerializer(ModelSerializer):
         model = TaskHistory
         fields = ["oldstatus", "newstatus", "change_date" ]
 
-
 class HistoryFilter(FilterSet):
-    oldstatus = ChoiceFilter(choices=STATUS_CHOICES)
-    newstatus = ChoiceFilter(choices=STATUS_CHOICES)
-    # * https://django-filter.readthedocs.io/en/stable/ref/filters.html#method
+    old_status = ChoiceFilter(choices=STATUS_CHOICES)
+    new_status = ChoiceFilter(choices=STATUS_CHOICES)
     change_date = DateFilter(method="datefilter")
 
-    def datefilter(self, queryset, name, value):
+    def date_filter(self, queryset, name, value):
         return queryset.filter(
             updated_date__year=value.year,
             updated_date__month=value.month,
@@ -78,11 +76,5 @@ class TaskHistoryViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, Gener
     def get_queryset(self):
         return TaskHistory.objects.filter(
             task_id=self.kwargs["task_pk"],
-            user=self.request.user,
+            task__user = self.request.user,
         )
-#====================================================================
-# class TaskListAPI(APIView):
-#     def get(self, request):
-#         tasks= Task.objects.filter(deleted=False)
-#         data=TaskSerializer(tasks, many=True).data
-#         return Response({"tasks":data})

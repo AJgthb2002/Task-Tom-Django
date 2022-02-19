@@ -14,7 +14,6 @@ task_router.register("history", TaskHistoryViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('', ContactFormView.as_view()),
     path('tasks/', GenericAllTasksView.as_view()),
     path('pending-tasks/', GenericPendingTasksView.as_view()),
     path('completed-tasks/', GenericCompletedTasksView.as_view()),

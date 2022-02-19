@@ -1,7 +1,7 @@
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
 STATUS_CHOICES = [
@@ -29,17 +29,21 @@ class Task(models.Model):
 
 class TaskHistory(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    oldstatus= models.CharField(max_length=100, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
-    newstatus= models.CharField(max_length=100, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])  
+    old_status= models.CharField(max_length=100, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
+    new_status= models.CharField(max_length=100, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])  
     change_date = models.DateTimeField(auto_now=True) 
 
     def __str__(self):
-        return self.task.title + " changed from " + self.oldstatus + " to " + self.newstatus + " on " + str(self.change_date)
+        return self.task.title + " changed from " + self.old_status + " to " + self.new_status + " on " + str(self.change_date)
 
 
 @receiver(pre_save, sender=Task)
-def CreateTaskHistory(sender, instance, **kwargs):
-    old_task = Task.objects.get(pk=instance.id)
-    if old_task.status != instance.status:
-        TaskHistory.objects.create(oldstatus=old_task.status, newstatus=instance.status, task=instance, user=old_task.user).save()
+def create_task_history(sender, instance, **kwargs):
+    try:
+        old_task = Task.objects.get(id=instance.id)
+        if old_task.status != instance.status:
+            print("Created history")
+            TaskHistory.objects.create(old_status=old_task.status, new_status=instance.status, task=instance).save()
+    except Exception as e:
+        print(e)        
+  
