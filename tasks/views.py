@@ -7,13 +7,18 @@ from django.forms import ModelForm
 from django.http import HttpResponseRedirect
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
-
-from tasks.models import Task
-
+from django import forms
+from tasks.models import Task, Report
+from django.contrib.auth.models import User
+from django.shortcuts import render
 
 class AuthorisedTasksGenerator(LoginRequiredMixin):
     def get_queryset(self):
         return Task.objects.filter(deleted=False, user=self.request.user)
+
+class AuthorisedReportGenerator(LoginRequiredMixin):
+    def get_queryset(self):
+        return Report.objects.filter(user=self.request.user)        
 
 class TaskCreateForm(ModelForm):
     class Meta:
@@ -126,13 +131,50 @@ class GenericTaskUpdateView(AuthorisedTasksGenerator, UpdateView):
         self.object.save()
         return HttpResponseRedirect("/tasks")
 
+class UserSignUpForm(UserCreationForm):
+    report = forms.BooleanField(required=False)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email','password1', 'password2', 'report')
+
+
 class UserCreateView(CreateView):
-    form_class= UserCreationForm
+    form_class= UserSignUpForm
     template_name="signup.html"
     success_url="/user/login/"
+
+    def form_valid(self, form):
+        # if reports checkbox is checked redirect to reports page
+        if form.cleaned_data['report']:
+            self.success_url = '/user/login?next=/report'
+        return super(UserCreateView, self).form_valid(form)
 
 class UserLoginView(LoginView):
     template_name="login.html"
 
+class ReportDetailForm(ModelForm):
+    class Meta:
+        model = Report
+        fields = ['send_time', 'confirmation']
+
+
+class SetReportView(AuthorisedReportGenerator, UpdateView):
+    form_class = ReportDetailForm
+    template_name = 'reports.html'
+    success_url="/tasks"
+
+    def get_object(self):
+        report_obj, created= Report.objects.get_or_create(user=self.request.user)
+        print("Inside get_object", created)
+        return report_obj
+        # return (Report.objects.get(user=self.request.user))[0]
+
+    def form_valid(self, form):
+        send_time = form.cleaned_data["send_time"]
+        self.object = form.save()
+        self.object.user = self.request.user
+        self.object.save()
+        return HttpResponseRedirect("/tasks")    
 
 

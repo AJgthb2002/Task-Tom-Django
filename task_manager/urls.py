@@ -22,5 +22,6 @@ urlpatterns = [
     path('update-task/<pk>/', GenericTaskUpdateView.as_view()),
     path('user/signup/', UserCreateView.as_view()),
     path('user/login/', UserLoginView.as_view()),
-    path('user/logout/', LogoutView.as_view())
+    path('user/logout/', LogoutView.as_view()),
+    path('report/', SetReportView.as_view())
 ]+ router.urls + task_router.urls

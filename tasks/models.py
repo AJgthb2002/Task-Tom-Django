@@ -1,6 +1,7 @@
 
 from django.contrib.auth.models import User
 from django.db import models
+from datetime import time
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
@@ -37,6 +38,12 @@ class TaskHistory(models.Model):
         return self.task.title + " changed from " + self.old_status + " to " + self.new_status + " on " + str(self.change_date)
 
 
+class Report(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE,)
+    confirmation = models.BooleanField(blank=True, default=False, help_text="I want to receive daily reports")
+    send_time = models.TimeField(default=time(0, 0, 0), help_text="Enter time in UTC format hh:mm:ss .")
+
+
 @receiver(pre_save, sender=Task)
 def create_task_history(sender, instance, **kwargs):
     try:
@@ -47,3 +54,4 @@ def create_task_history(sender, instance, **kwargs):
     except Exception as e:
         print(e)        
   
+
