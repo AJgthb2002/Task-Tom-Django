@@ -89,7 +89,7 @@ def update_priorities(user,priority_new):
             tasks_to_update.append(task)
     Task.objects.bulk_update(tasks_to_update,['priority'])     
 
-class GenericTaskCreateView(CreateView):
+class GenericTaskCreateView(AuthorisedTasksGenerator,CreateView):
     form_class= TaskCreateForm
     template_name="task_create.html"
     success_url="/tasks"

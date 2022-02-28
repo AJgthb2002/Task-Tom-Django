@@ -33,6 +33,7 @@ class TaskHistory(models.Model):
     old_status= models.CharField(max_length=100, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
     new_status= models.CharField(max_length=100, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])  
     change_date = models.DateTimeField(auto_now=True) 
+    
 
     def __str__(self):
         return self.task.title + " changed from " + self.old_status + " to " + self.new_status + " on " + str(self.change_date)
@@ -42,7 +43,8 @@ class Report(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE,)
     confirmation = models.BooleanField(blank=True, default=False, help_text="I want to receive daily reports")
     send_time = models.TimeField(default=time(0, 0, 0), help_text="Enter time in UTC format hh:mm:ss .")
-
+    last_updated = models.DateTimeField(null=True)
+    
 
 @receiver(pre_save, sender=Task)
 def create_task_history(sender, instance, **kwargs):
