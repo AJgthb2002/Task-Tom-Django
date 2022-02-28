@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User, AnonymousUser
 from tasks.views import *
+from tasks.apiviews import *
 from tasks.models import *
 from tasks.tasks import *
 from django.http.response import Http404
@@ -13,6 +14,7 @@ class AuthTests(TestCase):
             "/pending-tasks/",
             "/completed-tasks/",
             "/create-task/",
+            "/report/"
         ]
 
         redirect_url="/user/login/?next="
@@ -51,7 +53,7 @@ class AuthTests(TestCase):
 class AuthorizedViewsTest(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
-        self.user = User.objects.create_user(username="testuser1", password="test@123")
+        self.user = User.objects.create_user(username="testuser1", password="test@123",report=True)
         self.client = self.factory.get("/")
         self.client.user = self.user
         self.user2 = User.objects.create_user(username="testuser2", password="test@123")
@@ -79,7 +81,13 @@ class AuthorizedViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         response_content = response.render().content.decode()
         self.assertIn(f"{self.task1.title}", response_content)
-        self.assertIn("delete", response_content)    
+        self.assertIn("delete", response_content)
+
+    def test_report_view(self):
+        response = SetReportView.as_view()(self.client)
+        self.assertEqual(response.status_code, 200)
+        response_content = response.render().content.decode()
+        self.assertIn("Report Settings", response_content)        
 
     def test_soft_delete(self):
         self.task1.deleted=True
@@ -92,6 +100,7 @@ class AuthorizedViewsTest(TestCase):
         self.assertRaises(Http404, GenericTaskDeleteView.as_view(), self.client, pk=self.task2.id)
         self.assertRaises(Http404, GenericTaskUpdateView.as_view(), self.client, pk=5)
         self.assertRaises(Http404, GenericTaskDeleteView.as_view(), self.client, pk=90)
+        
 
 class CRUD_tests(TestCase):
     def setUp(self):
@@ -123,6 +132,8 @@ class CRUD_tests(TestCase):
             },
         )
 
+    
+
     def create_test_tasks(self):
         for i in range(1, 5):
             Task.objects.create(
@@ -151,8 +162,19 @@ class CRUD_tests(TestCase):
         priorities_exp = [2,3,4,5,6,7,8]
         for task in Task.objects.filter(user=self.user, completed=False, deleted=False ).order_by("priority")[:3]:
             self.assertTrue(priorities_exp[counter]==task.priority)
-            counter+=1      
-    
+            counter+=1  
+
+    def test_deleting_tasks(self):
+        Task.objects.create(
+                title="test task delete",
+                description="task for testing deletion",
+                priority=20,
+                user=self.user,
+            )
+        task = Task.objects.filter(title="test task delete").first()
+        res = self.client.post(f"/delete-task/{task.id}/")
+        self.assertEqual(res.status_code, 302)
+
     def test_task_history(self):
         self.create_test_tasks()
         task_to_update = Task.objects.filter(user=self.user, deleted=False, completed=False)[0]
@@ -162,6 +184,19 @@ class CRUD_tests(TestCase):
         history_obj = TaskHistory.objects.filter(task=task_to_update).last()
         self.assertEqual(history_obj.old_status, old_status)
         self.assertEqual(history_obj.new_status, new_status)
+
+        
+        response = self.client.get(f"/api/task/{task_to_update.id}/history")
+        self.assertEqual(response.status_code, 301)
+
+    def test_api(self):
+        self.create_test_tasks()
+        response= self.client.get("/api/task/")  
+        self.assertEqual(response.status_code, 200)
+        response_content = response.json()
+        # print(response_content)
+        self.assertEqual(f"{self.user.username}", response_content[0]['user']['username']) 
+
 
 class Celery_tests(TestCase): 
     def setUp(self):
@@ -191,4 +226,18 @@ class Celery_tests(TestCase):
         
         \n\nRegards,\nYour Wonderful Task Manager App
     """
-        self.assertEqual(email_content, report)       
+        self.assertEqual(email_content, report)   
+
+    def test_send_email_report2(self):
+        report = send_email_report(self)
+        email_content = f"""
+        Hi {self.user.username},
+        \n\nYour tasks report: \n
+        Pending tasks =   {0} \n
+        In-progress tasks = {0} \n
+        Completed tasks = {0} \n
+        Cancelled tasks = {0} 
+        
+        \n\nRegards,\nYour Wonderful Task Manager App
+    """
+        self.assertEqual(email_content, report) 
