@@ -177,4 +177,5 @@ class SetReportView(AuthorisedReportGenerator, UpdateView):
         self.object.save()
         return HttpResponseRedirect("/tasks")    
 
-
+def home_view(request):
+    return render(request, "homepage.html")
